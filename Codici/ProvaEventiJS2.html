@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Secondo esempio eventi JavaScript</title>
+</head>
+<body>
+
+<form id="formEsempio">
+  <input type="text" id="focusInput" placeholder="Clicca qui dentro">
+  <button type="submit">Invia</button>
+</form>
+
+<select id="selezione">
+  <option>Opzione 1</option>
+  <option>Opzione 2</option>
+  <option>Opzione 3</option>
+</select>
+
+<div style="height:800px;"></div>
+<p id="scrollInfo">Scorri la pagina verso il basso...</p>
+
+<script>
+  // Evento focus (campo input selezionato)
+  document.getElementById("focusInput").addEventListener("focus", function(){
+    console.log("Il campo input è selezionato");
+  });
+
+  // Evento blur (campo input perde selezione)
+  document.getElementById("focusInput").addEventListener("blur", function(){
+    console.log("Il campo input non è più selezionato");
+  });
+
+  // Evento submit (invio modulo)
+  document.getElementById("formEsempio").addEventListener("submit", function(event){
+    event.preventDefault(); // previene l’invio reale del modulo
+    alert("Modulo inviato virtualmente!");
+  });
+
+  // Evento change (selezione diversa nelle opzioni)
+  document.getElementById("selezione").addEventListener("change", function(event){
+    console.log("Hai scelto: " + event.target.value);
+  });
+
+  // Evento scroll (scorrimento pagina)
+  window.addEventListener("scroll", function(){
+    document.getElementById("scrollInfo").textContent = "Stai scorrendo la pagina...";
+  });
+
+  // Evento resize (ridimensionamento finestra browser)
+  window.addEventListener("resize", function(){
+    console.log("Finestra ridimensionata: " + window.innerWidth + "px");
+  });
+</script>
+
+</body>
+</html>

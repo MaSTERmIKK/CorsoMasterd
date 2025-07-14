@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Esempio eventi JavaScript</title>
+</head>
+<body>
+
+<button id="clicca">Cliccami</button>
+<input type="text" id="inputTesto" placeholder="Scrivi qualcosa...">
+<div id="areaMouse" style="width:200px;height:100px;background-color:lightblue;margin-top:10px;">
+  Passa qui col mouse
+</div>
+
+<script>
+  // Evento click
+  document.getElementById("clicca").addEventListener("click", function(){
+    alert("Hai cliccato il pulsante!");
+  });
+
+  // Evento input
+  document.getElementById("inputTesto").addEventListener("input", function(event){
+    console.log("Stai digitando: " + event.target.value);
+  });
+
+  // Eventi mouseover e mouseout
+  document.getElementById("areaMouse").addEventListener("mouseover", function(){
+    this.style.backgroundColor = "yellow";
+    console.log("Mouse sopra la zona");
+  });
+
+  document.getElementById("areaMouse").addEventListener("mouseout", function(){
+    this.style.backgroundColor = "lightblue";
+    console.log("Mouse fuori dalla zona");
+  });
+
+  // Evento keydown (pressione tasto)
+  document.addEventListener("keydown", function(event){
+    console.log("Hai premuto il tasto: " + event.key);
+  });
+
+  // Evento al caricamento della pagina
+  window.addEventListener("load", function(){
+    console.log("La pagina è stata caricata completamente");
+  });
+</script>
+
+</body>
+</html>
