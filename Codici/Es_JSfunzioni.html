@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Esempio Funzioni con Pulsanti</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 50px;
+    }
+    button {
+      display: block;
+      margin: 10px auto;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Esempio di funzioni in JavaScript</h1>
+
+  <!-- Pulsanti -->
+  <button onclick="saluto()">Mostra Saluto</button>
+  <button onclick="somma()">Calcola Somma</button>
+  <button onclick="moltiplica(3)">Calcola Moltiplicazione</button>
+  <button onclick="cambiaColore()">Cambia Colore Sfondo</button>
+  <button onclick="dataOra()">Mostra Data e Ora</button>
+
+  <script>
+    // Funzione di saluto
+    function saluto() {
+      alert("Ciao, benvenuto nel mondo di JavaScript!");
+    }
+
+    // Funzione che calcola una somma
+    function somma() {
+      let a = 5, b = 7;
+      alert("La somma di " + a + " e " + b + " è " + (a + b));
+      console.log(a+b);
+    }
+
+    // Funzione che calcola una moltiplicazione
+    function moltiplica(x1) {
+      let x = x1, y = 6;
+      alert("Il prodotto di " + x + " e " + y + " è " + (x * y));
+    }
+
+    // Funzione che cambia il colore di sfondo
+    function cambiaColore() {
+      let colori = ["lightblue", "lightgreen", "lightyellow", "lightpink", "lightgray"];
+      let colore = colori[Math.floor(Math.random() * colori.length)];
+      document.body.style.backgroundColor = colore;
+    }
+
+    // Funzione che mostra la data e l’ora attuale
+    function dataOra() {
+      let adesso = new Date();
+      alert("Data e ora attuali: " + adesso.toLocaleString());
+    }
+  </script>
+
+</body>
+</html>
