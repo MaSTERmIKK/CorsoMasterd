@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Esempio Completo HTML + CSS + JS</title>
+
+    <!-- Collegamento a un foglio di stile esterno -->
+    <link rel="stylesheet" href="stile.css">
+
+    <!-- Stile interno -->
+    <style>
+        body {
+            background-color: #f0f8ff;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        h1 {
+            color: darkblue;
+        }
+
+        .paragrafo {
+            color: darkgreen;
+            font-size: 18px;
+        }
+
+        button {
+            background-color: lightblue;
+            border: none;
+            padding: 10px 15px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: skyblue;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Titolo principale -->
+    <h1 style="text-decoration: underline;">Pagina di esempio completa</h1>
+
+    <!-- Paragrafo con classe (stile interno) -->
+    <p class="paragrafo">Questo testo è gestito dal CSS interno.</p>
+
+    <!-- Paragrafo con stile inline -->
+    <p style="color: red; font-weight: bold;">Questo testo usa lo stile inline.</p>
+
+    <!-- Pulsante con richiamo inline JavaScript -->
+    <button onclick="alert('Hai cliccato il pulsante inline!')">Clicca qui</button>
+
+    <!-- Paragrafo modificabile da JavaScript -->
+    <p id="messaggio">Clicca il secondo pulsante per cambiare questo testo.</p>
+
+    <!-- Pulsante che richiama funzione JS interna -->
+    <button onclick="cambiaTesto()">Cambia il testo</button>
+
+    <!-- Script interno -->
+    <script>
+        // Funzione JavaScript interna che modifica il contenuto di un paragrafo
+        function cambiaTesto() {
+            let p = document.getElementById("messaggio");
+            p.textContent = "Il testo è stato cambiato dallo script interno!";
+            p.style.color = "blue";
+        }
+    </script>
+
+    <!-- Collegamento a uno script esterno -->
+    <script src="script.js"></script>
+</body>
+</html>
