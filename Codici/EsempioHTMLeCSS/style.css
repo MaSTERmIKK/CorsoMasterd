@@ -1,0 +1,72 @@
+/* === Variabili CSS === */
+:root {
+    --colore-primario: #007bff;
+    --colore-secondario: #333;
+    --spaziatura: 15px;
+}
+
+/* === Ereditarietà del font === */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    color: var(--colore-secondario);
+}
+
+/* === Flexbox per la navbar === */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spaziatura);
+    background-color: var(--colore-primario);
+    color: white;
+}
+
+/* === Specificità: ID > classi === */
+#titolo-pagina {
+    font-size: 24px;
+}
+
+/* === Selettori e card === */
+.container {
+    padding: var(--spaziatura);
+}
+
+.card {
+    background: #f5f5f5;
+    padding: var(--spaziatura);
+    border-radius: 8px;
+    transition: box-shadow 0.3s; /* transizione */
+}
+
+.card:hover {
+    box-shadow: 0 0 12px rgba(0,0,0,0.2);
+}
+
+/* === Pulsante con transizione === */
+.btn-azione {
+    background-color: var(--colore-primario);
+    padding: 10px 18px;
+    border: none;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+
+.btn-azione:hover {
+    transform: scale(1.1);
+}
+
+/* === Media Query === */
+@media (max-width: 600px) {
+    .navbar {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    #titolo-pagina {
+        font-size: 20px;
+    }
+}
