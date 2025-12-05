@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8" />
+    <title>Demo Componenti HTML + CSS + JS</title>
+
+    <!--
+        In questo file mostriamo l'uso combinato di:
+        - HTML per la struttura
+        - CSS per lo stile e il layout
+        - JavaScript per il comportamento
+
+        Componenti inclusi:
+        1. Navbar responsive con "hamburger menu"
+        2. Switch tema chiaro/scuro (dark mode)
+        3. Tab / Schede di contenuto
+        4. Accordion
+        5. Modale (finestra pop-up)
+        6. Tooltip (titoli al passaggio del mouse)
+        7. Notifica "toast"
+        8. Form con validazione base lato client
+    -->
+
+    <style>
+        /* --------------------- RESET SEMPLICE --------------------- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            line-height: 1.5;
+            background-color: #f5f5f5; /* colore di sfondo tema chiaro */
+            color: #222;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* --------------------- TEMA SCURO (aggiunto via JS con class="dark") --------------------- */
+        body.dark {
+            background-color: #121212;
+            color: #f5f5f5;
+        }
+
+        body.dark .card {
+            background-color: #1e1e1e;
+            border-color: #333;
+        }
+
+        body.dark .navbar,
+        body.dark .footer {
+            background-color: #1b1b1b;
+        }
+
+        body.dark .tab-button.active {
+            background-color: #333;
+        }
+
+        /* --------------------- NAVBAR RESPONSIVE --------------------- */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background-color: #ffffff;
+            border-bottom: 1px solid #ddd;
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        body.dark .navbar {
+            border-bottom-color: #333;
+        }
+
+        .navbar-logo {
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+
+        .navbar-links {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .navbar-links a {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+        }
+
+        .navbar-links a:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        body.dark .navbar-links a:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+
+        /* Pulsante per aprire/chiudere il menu su schermi piccoli */
+        .navbar-toggle {
+            display: none;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
+
+        /* --------------------- LAYOUT PRINCIPALE --------------------- */
+        main {
+            max-width: 1100px;
+            margin: 1.5rem auto;
+            padding: 0 1rem 4rem;
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .card {
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            padding: 1.25rem 1.5rem;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+        }
+
+        h1, h2, h3 {
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            margin-bottom: 0.5rem;
+        }
+
+        .flex {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 999px;
+            padding: 0.4rem 0.9rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+            background-color: #1976d2;
+            color: #fff;
+            transition: transform 0.1s, box-shadow 0.1s, background-color 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #1565c0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+            transform: translateY(-1px);
+        }
+
+        .btn.secondary {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+
+        .btn.secondary:hover {
+            background-color: #d5d5d5;
+        }
+
+        .btn.danger {
+            background-color: #d32f2f;
+        }
+
+        .btn.danger:hover {
+            background-color: #c62828;
+        }
+
+        /* --------------------- SWITCH TEMA (toggle) --------------------- */
+        .theme-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.85rem;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .theme-toggle input {
+            display: none;
+        }
+
+        .theme-toggle-slider {
+            width: 40px;
+            height: 20px;
+            border-radius: 999px;
+            background-color: #ccc;
+            position: relative;
+            transition: background-color 0.2s;
+        }
+
+        .theme-toggle-slider::before {
+            content: "";
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background-color: #fff;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.2s;
+        }
+
+        .theme-toggle input:checked + .theme-toggle-slider {
+            background-color: #1976d2;
+        }
+
+        .theme-toggle input:checked + .theme-toggle-slider::before {
+            transform: translateX(20px);
+        }
+
+        /* --------------------- TABS / SCHEDE --------------------- */
+        .tabs {
+            margin-top: 0.75rem;
+        }
+
+        .tab-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .tab-button {
+            border-radius: 999px;
+            padding: 0.35rem 0.9rem;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            background-color: #f7f7f7;
+        }
+
+        .tab-button.active {
+            background-color: #1976d2;
+            color: #fff;
+            border-color: #1976d2;
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        /* --------------------- ACCORDION --------------------- */
+        .accordion {
+            margin-top: 0.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid #ddd;
+            overflow: hidden;
+        }
+
+        .accordion-item + .accordion-item {
+            border-top: 1px solid #ddd;
+        }
+
+        .accordion-header {
+            background-color: #fafafa;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .accordion-icon {
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        .accordion-item.open .accordion-icon {
+            transform: rotate(90deg);
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            padding: 0 1rem;
+            background-color: #fff;
+            transition: max-height 0.25s ease, padding-bottom 0.25s ease;
+        }
+
+        .accordion-item.open .accordion-content {
+            padding-bottom: 0.75rem;
+        }
+
+        /* --------------------- MODALE --------------------- */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.45);
+            display: none; /* verrà mostrato via JS */
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal-backdrop.visible {
+            display: flex;
+        }
+
+        .modal {
+            background-color: #fff;
+            border-radius: 0.75rem;
+            padding: 1.25rem 1.5rem;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+        }
+
+        body.dark .modal {
+            background-color: #1e1e1e;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .modal-title {
+            font-weight: 600;
+        }
+
+        .modal-close {
+            border: none;
+            background: none;
+            font-size: 1.3rem;
+            cursor: pointer;
+        }
+
+        /* --------------------- TOOLTIP --------------------- */
+        /* I tooltip qui sono realizzati solo in CSS con l'attributo data-tooltip */
+        [data-tooltip] {
+            position: relative;
+            cursor: help;
+        }
+
+        [data-tooltip]::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 135%;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            background-color: #333;
+            color: #fff;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.35rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.15s;
+        }
+
+        [data-tooltip]:hover::after {
+            opacity: 1;
+        }
+
+        /* --------------------- TOAST --------------------- */
+        .toast-container {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            z-index: 3000;
+        }
+
+        .toast {
+            background-color: #323232;
+            color: #fff;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.25s, transform 0.25s;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* --------------------- FORM CON VALIDAZIONE --------------------- */
+        .form-group {
+            margin-bottom: 0.75rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.4rem 0.6rem;
+            border-radius: 0.4rem;
+            border: 1px solid #ccc;
+            font-size: 0.9rem;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #1976d2;
+            box-shadow: 0 0 0 1px rgba(25, 118, 210, 0.25);
+        }
+
+        .error-message {
+            font-size: 0.8rem;
+            color: #d32f2f;
+            margin-top: 0.15rem;
+        }
+
+        .form-success {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: #2e7d32;
+        }
+
+        /* --------------------- FOOTER --------------------- */
+        .footer {
+            background-color: #ffffff;
+            border-top: 1px solid #ddd;
+            padding: 0.75rem 1.5rem;
+            text-align: center;
+            font-size: 0.8rem;
+        }
+
+        body.dark .footer {
+            border-top-color: #333;
+        }
+
+        /* --------------------- RESPONSIVE --------------------- */
+        @media (max-width: 700px) {
+            .navbar-links {
+                position: absolute;
+                top: 100%;
+                right: 0;
+                background-color: #ffffff;
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 0.75rem 1rem;
+                border-bottom-left-radius: 0.75rem;
+                border-left: 1px solid #ddd;
+                border-bottom: 1px solid #ddd;
+                display: none;
+            }
+
+            body.dark .navbar-links {
+                background-color: #1b1b1b;
+                border-color: #333;
+            }
+
+            .navbar-links.open {
+                display: flex;
+            }
+
+            .navbar-toggle {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- NAVBAR CON HAMBURGER E SWITCH TEMA -->
+    <header class="navbar">
+        <div class="navbar-logo">Demo Componenti</div>
+
+        <!-- Menu di navigazione, verrà collassato su mobile -->
+        <nav class="navbar-links" id="navbarLinks">
+            <a href="#intro">Intro</a>
+            <a href="#tabs-section">Tabs</a>
+            <a href="#accordion-section">Accordion</a>
+            <a href="#form-section">Form</a>
+
+            <!-- Switch per attivare tema scuro/chiaro -->
+            <label class="theme-toggle" title="Cambia tema">
+                <!-- Checkbox nascosto, usato come stato -->
+                <input type="checkbox" id="themeToggle">
+                <span class="theme-toggle-slider"></span>
+                <span>Tema scuro</span>
+            </label>
+        </nav>
+
+        <!-- Pulsante hamburger visibile solo su schermi piccoli (CSS @media) -->
+        <button class="navbar-toggle" id="navbarToggle" aria-label="Apri menù">
+            ☰
+        </button>
+    </header>
+
+    <!-- CONTENUTO PRINCIPALE -->
+    <main>
+        <!-- INTRO E MODALE + TOAST -->
+        <section class="card" id="intro">
+            <h1>Dimostrazione Componenti</h1>
+            <p>
+                Questo file mostra come <strong>HTML, CSS e JavaScript</strong> possano
+                collaborare per costruire componenti interattivi riutilizzabili.
+            </p>
+            <p>
+                Osserva il codice sorgente: troverai commenti che spiegano come ogni
+                parte è collegata alle altre.
+            </p>
+
+            <div class="flex" style="margin-top: 0.75rem;">
+                <button class="btn" id="openModalButton">
+                    Apri modale di esempio
+                </button>
+                <button class="btn secondary" id="showToastButton">
+                    Mostra notifica (toast)
+                </button>
+
+                <!-- Elemento con tooltip  -->
+                <span data-tooltip="Sono un tooltip realizzato con CSS puro!">
+                    ℹ Tooltip
+                </span>
+            </div>
+        </section>
+
+        <!-- TABS / SCHEDE -->
+        <section class="card" id="tabs-section">
+            <h2>Tabs / Schede</h2>
+            <p>
+                Le tab permettono di mostrare diversi contenuti sulla stessa area,
+                cambiando solo la sezione visibile tramite JavaScript.
+            </p>
+
+            <div class="tabs" data-tabs>
+                <!-- Pulsanti delle tab: il data-tab-target indica l'ID del pannello da mostrare -->
+                <div class="tab-buttons">
+                    <button class="tab-button active" data-tab-target="tab-html">HTML</button>
+                    <button class="tab-button" data-tab-target="tab-css">CSS</button>
+                    <button class="tab-button" data-tab-target="tab-js">JavaScript</button>
+                </div>
+
+                <!-- Pannelli delle tab -->
+                <div class="tab-panel active" id="tab-html">
+                    <h3>Struttura HTML</h3>
+                    <p>
+                        L'HTML definisce tag, sezioni e attributi (come <code>id</code> e
+                        <code>data-*</code>) che usiamo per agganciare stile e logica.
+                    </p>
+                </div>
+
+                <div class="tab-panel" id="tab-css">
+                    <h3>Stile CSS</h3>
+                    <p>
+                        Il CSS utilizza classi come <code>.card</code>, <code>.tab-button</code>
+                        e <code>.active</code> per definire l’aspetto visivo dei componenti.
+                    </p>
+                </div>
+
+                <div class="tab-panel" id="tab-js">
+                    <h3>Logica JavaScript</h3>
+                    <p>
+                        Il JavaScript ascolta eventi (click, submit, ecc.) e modifica il DOM
+                        (classi, attributi, testo) per aggiornare l’interfaccia dinamicamente.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ACCORDION -->
+        <section class="card" id="accordion-section">
+            <h2>Accordion</h2>
+            <p>
+                L'accordion permette di espandere e collassare sezioni di testo.
+                Anche qui la logica è gestita da JS, lo stile da CSS e la struttura da HTML.
+            </p>
+
+            <div class="accordion" id="demoAccordion">
+                <div class="accordion-item">
+                    <div class="accordion-header">
+                        <span>DOM</span>
+                        <span class="accordion-icon">&gt;</span>
+                    </div>
+                    <div class="accordion-content">
+                        <p>
+                            Il Document Object Model (DOM) rappresenta la pagina come struttura ad albero:
+                            JavaScript può leggere e modificare qualsiasi nodo.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <div class="accordion-header">
+                        <span>Eventi</span>
+                        <span class="accordion-icon">&gt;</span>
+                    </div>
+                    <div class="accordion-content">
+                        <p>
+                            Gli eventi (click, input, submit, ecc.) sono il punto di contatto tra
+                            l'utente e l'interfaccia. Con <code>addEventListener</code> possiamo
+                            reagire a questi eventi.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <div class="accordion-header">
+                        <span>Stato</span>
+                        <span class="accordion-icon">&gt;</span>
+                    </div>
+                    <div class="accordion-content">
+                        <p>
+                            Lo stato può essere rappresentato con variabili JS e/o classi CSS
+                            applicate/ rimosse dinamicamente dagli elementi.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FORM CON VALIDAZIONE -->
+        <section class="card" id="form-section">
+            <h2>Form con validazione</h2>
+            <p>
+                Questo form di contatto mostra una validazione base lato client:
+                se i campi non sono validi, compaiono messaggi di errore senza ricaricare la pagina.
+            </p>
+
+            <form id="contactForm" novalidate>
+                <div class="form-group">
+                    <label for="nameInput">Nome</label>
+                    <input type="text" id="nameInput" name="name" placeholder="Inserisci il tuo nome" />
+                    <div class="error-message" data-error-for="name"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="emailInput">Email</label>
+                    <input type="email" id="emailInput" name="email" placeholder="nome@esempio.com" />
+                    <div class="error-message" data-error-for="email"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="messageInput">Messaggio</label>
+                    <textarea id="messageInput" name="message" rows="3" placeholder="Scrivi il tuo messaggio..."></textarea>
+                    <div class="error-message" data-error-for="message"></div>
+                </div>
+
+                <button type="submit" class="btn">Invia</button>
+                <div id="formSuccess" class="form-success"></div>
+            </form>
+        </section>
+    </main>
+
+    <!-- MODALE (fuori dal main per posizionamento globale) -->
+    <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle">Modale di Esempio</div>
+                <button class="modal-close" id="modalCloseButton" aria-label="Chiudi modale">&times;</button>
+            </div>
+            <p>
+                Questa è una finestra modale controllata da JavaScript.
+                Prova a cliccare fuori dalla finestra o sul bottone di chiusura.
+            </p>
+            <p style="margin-top: 0.5rem;">
+                È utile per conferme, avvisi o contenuti extra.
+            </p>
+        </div>
+    </div>
+
+    <!-- CONTENITORE PER I "TOAST" -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        Esempio didattico: uso combinato di HTML, CSS e JavaScript.
+    </footer>
+
+    <script>
+        // NOTA: tutto il codice JS è racchiuso in un listener "DOMContentLoaded"
+        // per assicurarci che il DOM sia pronto prima di accedere agli elementi.
+        document.addEventListener("DOMContentLoaded", function () {
+            /* --------------------- NAVBAR RESPONSIVE --------------------- */
+            const navbarToggle = document.getElementById("navbarToggle");
+            const navbarLinks = document.getElementById("navbarLinks");
+
+            // Quando l'utente clicca sul pulsante hamburger
+            navbarToggle.addEventListener("click", function () {
+                // Aggiungo/rimuovo la classe "open" per mostrare/nascondere il menu su mobile
+                navbarLinks.classList.toggle("open");
+            });
+
+            /* --------------------- TEMA SCURO/CHIARO --------------------- */
+            const themeToggleCheckbox = document.getElementById("themeToggle");
+
+            // Carichiamo il tema salvato nel localStorage (se presente)
+            const savedTheme = localStorage.getItem("theme");
+            if (savedTheme === "dark") {
+                document.body.classList.add("dark");
+                themeToggleCheckbox.checked = true;
+            }
+
+            // Quando l'utente clicca sullo switch tema
+            themeToggleCheckbox.addEventListener("change", function () {
+                if (this.checked) {
+                    document.body.classList.add("dark");
+                    localStorage.setItem("theme", "dark");
+                } else {
+                    document.body.classList.remove("dark");
+                    localStorage.setItem("theme", "light");
+                }
+            });
+
+            /* --------------------- TABS / SCHEDE --------------------- */
+            const tabButtons = document.querySelectorAll(".tab-button");
+            const tabPanels = document.querySelectorAll(".tab-panel");
+
+            tabButtons.forEach(function (button) {
+                button.addEventListener("click", function () {
+                    // 1. Rimuovo la classe "active" da tutte le tab e pannelli
+                    tabButtons.forEach(btn => btn.classList.remove("active"));
+                    tabPanels.forEach(panel => panel.classList.remove("active"));
+
+                    // 2. Aggiungo la classe "active" alla tab cliccata
+                    this.classList.add("active");
+
+                    // 3. Recupero l'id del pannello da mostrare dal data-attribute
+                    const targetId = this.getAttribute("data-tab-target");
+                    const targetPanel = document.getElementById(targetId);
+
+                    // 4. Rendo visibile il pannello corrispondente
+                    if (targetPanel) {
+                        targetPanel.classList.add("active");
+                    }
+                });
+            });
+
+            /* --------------------- ACCORDION --------------------- */
+            const accordion = document.getElementById("demoAccordion");
+            const accordionItems = accordion.querySelectorAll(".accordion-item");
+
+            accordionItems.forEach(function (item) {
+                const header = item.querySelector(".accordion-header");
+
+                header.addEventListener("click", function () {
+                    // Opzionale: chiudi gli altri pannelli (accordion "a fisarmonica")
+                    accordionItems.forEach(i => {
+                        if (i !== item) {
+                            i.classList.remove("open");
+                            const content = i.querySelector(".accordion-content");
+                            content.style.maxHeight = null;
+                        }
+                    });
+
+                    // Alterna lo stato "open" sul pannello cliccato
+                    item.classList.toggle("open");
+                    const content = item.querySelector(".accordion-content");
+
+                    if (item.classList.contains("open")) {
+                        // Calcoliamo l'altezza scrollHeight per aprire l'accordion
+                        content.style.maxHeight = content.scrollHeight + "px";
+                    } else {
+                        content.style.maxHeight = null;
+                    }
+                });
+            });
+
+            /* --------------------- MODALE --------------------- */
+            const modalBackdrop = document.getElementById("modalBackdrop");
+            const openModalButton = document.getElementById("openModalButton");
+            const modalCloseButton = document.getElementById("modalCloseButton");
+
+            function openModal() {
+                modalBackdrop.classList.add("visible");
+                modalBackdrop.setAttribute("aria-hidden", "false");
+            }
+
+            function closeModal() {
+                modalBackdrop.classList.remove("visible");
+                modalBackdrop.setAttribute("aria-hidden", "true");
+            }
+
+            openModalButton.addEventListener("click", openModal);
+            modalCloseButton.addEventListener("click", closeModal);
+
+            // Chiudi la modale cliccando sullo sfondo
+            modalBackdrop.addEventListener("click", function (event) {
+                // Se l'utente clicca esattamente sul backdrop (non sulla finestra interna)
+                if (event.target === modalBackdrop) {
+                    closeModal();
+                }
+            });
+
+            // Chiudi la modale con ESC
+            document.addEventListener("keydown", function (event) {
+                if (event.key === "Escape") {
+                    closeModal();
+                }
+            });
+
+            /* --------------------- TOAST / NOTIFICHE --------------------- */
+            const toastContainer = document.getElementById("toastContainer");
+            const showToastButton = document.getElementById("showToastButton");
+
+            function showToast(message, duration = 3000) {
+                // Creiamo il div del toast
+                const toast = document.createElement("div");
+                toast.className = "toast";
+                toast.textContent = message;
+
+                // Aggiungiamo il toast al container
+                toastContainer.appendChild(toast);
+
+                // Forziamo un reflow per far partire la transizione
+                requestAnimationFrame(() => {
+                    toast.classList.add("show");
+                });
+
+                // Rimuoviamo il toast dopo 'duration' millisecondi
+                setTimeout(() => {
+                    toast.classList.remove("show");
+
+                    // Rimuoviamo l'elemento dal DOM dopo la transizione
+                    setTimeout(() => {
+                        toast.remove();
+                    }, 250);
+                }, duration);
+            }
+
+            showToastButton.addEventListener("click", function () {
+                showToast("Questa è una notifica di esempio (toast)!");
+            });
+
+            /* --------------------- FORM CON VALIDAZIONE --------------------- */
+            const contactForm = document.getElementById("contactForm");
+            const formSuccess = document.getElementById("formSuccess");
+
+            function setError(fieldName, message) {
+                const errorElement = document.querySelector(
+                    `.error-message[data-error-for="${fieldName}"]`
+                );
+                if (errorElement) {
+                    errorElement.textContent = message;
+                }
+            }
+
+            function clearErrors() {
+                document.querySelectorAll(".error-message").forEach(function (el) {
+                    el.textContent = "";
+                });
+                formSuccess.textContent = "";
+            }
+
+            // Semplice validazione del form
+            contactForm.addEventListener("submit", function (event) {
+                event.preventDefault(); // Evita il refresh della pagina
+
+                clearErrors();
+
+                const nameValue = contactForm.name.value.trim();
+                const emailValue = contactForm.email.value.trim();
+                const messageValue = contactForm.message.value.trim();
+
+                let isValid = true;
+
+                if (nameValue.length < 2) {
+                    setError("name", "Il nome deve contenere almeno 2 caratteri.");
+                    isValid = false;
+                }
+
+                // Controllo base per email (non è perfetto, ma didattico)
+                if (!emailValue.includes("@") || !emailValue.includes(".")) {
+                    setError("email", "Inserisci un indirizzo email valido.");
+                    isValid = false;
+                }
+
+                if (messageValue.length < 5) {
+                    setError("message", "Il messaggio deve contenere almeno 5 caratteri.");
+                    isValid = false;
+                }
+
+                if (isValid) {
+                    // Se tutto ok, fingo l'invio del form
+                    formSuccess.textContent = "Messaggio inviato con successo (simulato).";
+                    showToast("Form inviato correttamente!");
+                    contactForm.reset();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

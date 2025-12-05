@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8" />
+    <title>Demo Componenti 2 - HTML + CSS + JS</title>
+
+    <!--
+        SECONDO FILE DIDATTICO
+
+        Nuove feature rispetto al primo:
+        1. Sidebar collassabile (layout + stato salvato in localStorage)
+        2. Ricerca live su una lista di "componenti"
+        3. To-do list dinamica (aggiungi / rimuovi elementi dal DOM)
+        4. Contatore con step +/- e salvataggio del valore in localStorage
+        5. Barra di progresso con pulsanti che ne modificano il valore
+        6. Galleria immagini con lightbox (modale dedicata alle immagini)
+    -->
+
+    <style>
+        /* --------------- RESET MINIMO --------------- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background-color: #f4f4f4;
+            color: #222;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        /* --------------- LAYOUT CON SIDEBAR --------------- */
+        .layout {
+            display: grid;
+            grid-template-columns: 240px 1fr; /* sidebar + contenuto */
+            min-height: 100vh;
+            transition: grid-template-columns 0.25s;
+        }
+
+        /* Stato "chiuso": la sidebar diventa stretta */
+        .layout.sidebar-collapsed {
+            grid-template-columns: 60px 1fr;
+        }
+
+        /* --------------- SIDEBAR --------------- */
+        .sidebar {
+            background-color: #222;
+            color: #fff;
+            padding: 1rem 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sidebar-title {
+            font-weight: 600;
+            font-size: 1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            transition: max-width 0.25s, opacity 0.25s;
+            max-width: 130px;
+        }
+
+        .layout.sidebar-collapsed .sidebar-title {
+            max-width: 0;
+            opacity: 0;
+        }
+
+        .sidebar-toggle {
+            border: none;
+            background: none;
+            color: #fff;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .sidebar-section-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            opacity: 0.7;
+        }
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .sidebar-link {
+            padding: 0.3rem 0.4rem;
+            border-radius: 0.4rem;
+            font-size: 0.9rem;
+        }
+
+        .sidebar-link:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        /* Quando collassata, nascondi testo e mostra solo icone (simulate) */
+        .layout.sidebar-collapsed .sidebar-link span.text {
+            display: none;
+        }
+
+        .sidebar-link span.icon {
+            display: inline-block;
+            width: 1.2rem;
+            text-align: center;
+            margin-right: 0.25rem;
+        }
+
+        /* --------------- CONTENUTO PRINCIPALE --------------- */
+        .content {
+            padding: 1.5rem;
+        }
+
+        .page-title {
+            font-size: 1.4rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            color: #555;
+            margin-bottom: 1.5rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1rem;
+        }
+
+        .card {
+            background-color: #fff;
+            border-radius: 0.7rem;
+            padding: 1rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        }
+
+        h2 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* --------------- BOTTONI --------------- */
+        .btn {
+            border: none;
+            border-radius: 999px;
+            padding: 0.35rem 0.8rem;
+            font-size: 0.85rem;
+            cursor: pointer;
+            background-color: #1976d2;
+            color: #fff;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .btn:hover {
+            background-color: #1565c0;
+            transform: translateY(-1px);
+        }
+
+        .btn.secondary {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+
+        .btn.secondary:hover {
+            background-color: #d5d5d5;
+        }
+
+        .btn.small {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+        }
+
+        /* --------------- RICERCA LIVE --------------- */
+        .search-input {
+            width: 100%;
+            padding: 0.4rem 0.6rem;
+            border-radius: 0.5rem;
+            border: 1px solid #ccc;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #1976d2;
+            box-shadow: 0 0 0 1px rgba(25,118,210,0.25);
+        }
+
+        .search-list {
+            list-style-type: none;
+        }
+
+        .search-list li {
+            padding: 0.3rem 0.45rem;
+            border-radius: 0.4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .search-list li:nth-child(odd) {
+            background-color: #fafafa;
+        }
+
+        .search-list li .tag {
+            font-size: 0.75rem;
+            padding: 0.1rem 0.35rem;
+            border-radius: 999px;
+            background-color: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .search-empty {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+
+        /* --------------- TO-DO LIST DINAMICA --------------- */
+        .todo-input-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .todo-input-row input {
+            flex: 1;
+            padding: 0.4rem 0.6rem;
+            border-radius: 0.5rem;
+            border: 1px solid #ccc;
+            font-size: 0.9rem;
+        }
+
+        .todo-list {
+            list-style-type: none;
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.3rem 0.4rem;
+            border-radius: 0.4rem;
+        }
+
+        .todo-item:nth-child(odd) {
+            background-color: #fafafa;
+        }
+
+        .todo-text {
+            font-size: 0.9rem;
+        }
+
+        .todo-remove {
+            border: none;
+            background: none;
+            color: #d32f2f;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        /* --------------- CONTATORE + LOCALSTORAGE --------------- */
+        .counter-value {
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin: 0.5rem 0;
+        }
+
+        .counter-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        /* --------------- BARRA DI PROGRESSO --------------- */
+        .progress-bar-wrapper {
+            margin-top: 0.5rem;
+        }
+
+        .progress-track {
+            width: 100%;
+            background-color: #eee;
+            border-radius: 999px;
+            overflow: hidden;
+            height: 12px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, #42a5f5, #1976d2);
+            transition: width 0.2s;
+        }
+
+        .progress-label {
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+            text-align: right;
+            color: #444;
+        }
+
+        /* --------------- GALLERIA + LIGHTBOX --------------- */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.4rem;
+        }
+
+        .gallery-item {
+            border-radius: 0.5rem;
+            overflow: hidden;
+            cursor: pointer;
+            border: 1px solid #ddd;
+        }
+
+        .gallery-item img {
+            display: block;
+            width: 100%;
+            height: 80px;
+            object-fit: cover;
+            transition: transform 0.2s, filter 0.2s;
+        }
+
+        .gallery-item:hover img {
+            transform: scale(1.05);
+            filter: brightness(1.05);
+        }
+
+        /* Lightbox (modale immagine) */
+        .lightbox-backdrop {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .lightbox-backdrop.visible {
+            display: flex;
+        }
+
+        .lightbox-content {
+            background-color: #111;
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            max-width: 90%;
+            max-height: 90%;
+        }
+
+        .lightbox-content img {
+            max-width: 100%;
+            max-height: 80vh;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .lightbox-caption {
+            color: #eee;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+
+        /* --------------- RESPONSIVE --------------- */
+        @media (max-width: 768px) {
+            .layout {
+                grid-template-columns: 60px 1fr;
+            }
+
+            .sidebar-title {
+                max-width: 0;
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="layout" id="layoutRoot">
+        <!-- SIDEBAR COLLASSABILE -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-title">Componenti 2</div>
+                <!-- bottone per collassare -->
+                <button class="sidebar-toggle" id="sidebarToggle" title="Apri/chiudi sidebar">
+                    ☰
+                </button>
+            </div>
+
+            <div>
+                <div class="sidebar-section-title">Sezioni</div>
+                <nav class="sidebar-nav">
+                    <a href="#search-card" class="sidebar-link">
+                        <span class="icon">🔍</span>
+                        <span class="text">Ricerca</span>
+                    </a>
+                    <a href="#todo-card" class="sidebar-link">
+                        <span class="icon">📝</span>
+                        <span class="text">To-Do List</span>
+                    </a>
+                    <a href="#counter-card" class="sidebar-link">
+                        <span class="icon">🔢</span>
+                        <span class="text">Contatore</span>
+                    </a>
+                    <a href="#progress-card" class="sidebar-link">
+                        <span class="icon">📊</span>
+                        <span class="text">Progresso</span>
+                    </a>
+                    <a href="#gallery-card" class="sidebar-link">
+                        <span class="icon">🖼</span>
+                        <span class="text">Galleria</span>
+                    </a>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- CONTENUTO PRINCIPALE -->
+        <main class="content">
+            <header>
+                <h1 class="page-title">Demo Componenti (Parte 2)</h1>
+                <p class="page-subtitle">
+                    Altri esempi di integrazione tra struttura (HTML), stile (CSS) e comportamento (JS).
+                </p>
+            </header>
+
+            <section class="grid">
+                <!-- RICERCA LIVE -->
+                <article class="card" id="search-card">
+                    <h2>Ricerca live su lista</h2>
+                    <p>
+                        Digitando nel campo di testo, la lista si filtra in tempo reale.
+                        JavaScript legge il valore dell’input e mostra/nasconde gli elementi.
+                    </p>
+
+                    <input
+                        type="text"
+                        class="search-input"
+                        id="componentSearchInput"
+                        placeholder="Cerca un componente (es: 'modale', 'accordion')..."
+                    />
+
+                    <ul class="search-list" id="componentList">
+                        <!-- Ogni li ha un data-name: ci serve per la ricerca -->
+                        <li data-name="navbar responsive">
+                            <span>Navbar responsive</span>
+                            <span class="tag">layout</span>
+                        </li>
+                        <li data-name="tema scuro">
+                            <span>Tema scuro</span>
+                            <span class="tag">tema</span>
+                        </li>
+                        <li data-name="tabs">
+                            <span>Tabs</span>
+                            <span class="tag">navigazione</span>
+                        </li>
+                        <li data-name="accordion">
+                            <span>Accordion</span>
+                            <span class="tag">contenuti</span>
+                        </li>
+                        <li data-name="modale">
+                            <span>Modale</span>
+                            <span class="tag">overlay</span>
+                        </li>
+                        <li data-name="toast">
+                            <span>Toast</span>
+                            <span class="tag">feedback</span>
+                        </li>
+                        <li data-name="form validation">
+                            <span>Form validation</span>
+                            <span class="tag">form</span>
+                        </li>
+                        <li data-name="sidebar collassabile">
+                            <span>Sidebar collassabile</span>
+                            <span class="tag">layout</span>
+                        </li>
+                        <li data-name="galleria immagini">
+                            <span>Galleria immagini</span>
+                            <span class="tag">media</span>
+                        </li>
+                    </ul>
+
+                    <div class="search-empty" id="searchEmptyMessage" style="display:none;">
+                        Nessun elemento corrisponde alla ricerca.
+                    </div>
+                </article>
+
+                <!-- TO-DO LIST DINAMICA -->
+                <article class="card" id="todo-card">
+                    <h2>To-Do List dinamica</h2>
+                    <p>
+                        Il form aggiunge elementi alla lista.
+                        Ogni elemento può essere rimosso con un pulsante:
+                        usiamo <strong>createElement</strong>, <strong>appendChild</strong> e <strong>remove()</strong>.
+                    </p>
+
+                    <div class="todo-input-row">
+                        <input
+                            type="text"
+                            id="todoInput"
+                            placeholder="Aggiungi una nuova attività (es: 'Spiegare le classi JS')"
+                        />
+                        <button class="btn small" id="addTodoButton">Aggiungi</button>
+                    </div>
+
+                    <ul class="todo-list" id="todoList">
+                        <!-- alcuni elementi di esempio -->
+                        <li class="todo-item">
+                            <span class="todo-text">Preparare le slide della lezione</span>
+                            <button class="todo-remove" aria-label="Rimuovi">✕</button>
+                        </li>
+                        <li class="todo-item">
+                            <span class="todo-text">Mostrare il DOM Inspector agli studenti</span>
+                            <button class="todo-remove" aria-label="Rimuovi">✕</button>
+                        </li>
+                    </ul>
+                </article>
+
+                <!-- CONTATORE + LOCALSTORAGE -->
+                <article class="card" id="counter-card">
+                    <h2>Contatore con persistenza</h2>
+                    <p>
+                        Il contatore usa variabili JavaScript e aggiorna il DOM.
+                        Il valore viene salvato in <code>localStorage</code>, quindi resiste ai refresh.
+                    </p>
+
+                    <div>
+                        <div>Valore corrente:</div>
+                        <div class="counter-value" id="counterValue">0</div>
+
+                        <div class="counter-buttons">
+                            <button class="btn small" data-counter-action="decrement">−1</button>
+                            <button class="btn small" data-counter-action="increment">+1</button>
+                            <button class="btn small secondary" data-counter-action="reset">Reset</button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- BARRA DI PROGRESSO -->
+                <article class="card" id="progress-card">
+                    <h2>Barra di progresso</h2>
+                    <p>
+                        I pulsanti modificano la percentuale di completamento; la barra
+                        e l’etichetta vengono aggiornate in base al valore.
+                    </p>
+
+                    <div class="progress-bar-wrapper">
+                        <div class="progress-track">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <div class="progress-label" id="progressLabel">0%</div>
+                    </div>
+
+                    <div style="margin-top: 0.5rem; display:flex; gap:0.5rem; flex-wrap:wrap;">
+                        <button class="btn small" data-progress-step="10">+10%</button>
+                        <button class="btn small" data-progress-step="-10">−10%</button>
+                        <button class="btn small secondary" id="progressResetButton">Reset</button>
+                    </div>
+                </article>
+
+                <!-- GALLERIA + LIGHTBOX -->
+                <article class="card" id="gallery-card">
+                    <h2>Galleria immagini + Lightbox</h2>
+                    <p>
+                        Cliccando sulle miniature, si apre una lightbox che mostra
+                        l’immagine ingrandita: la logica è simile a una modale.
+                    </p>
+
+                    <!-- in un contesto reale useresti immagini "vere"; qui usiamo placeholder via URL -->
+                    <div class="gallery-grid" id="gallery">
+                        <div class="gallery-item" data-caption="Interfaccia con cards">
+                            <img src="https://picsum.photos/400/300?random=1" alt="Placeholder 1">
+                        </div>
+                        <div class="gallery-item" data-caption="Layout con sidebar">
+                            <img src="https://picsum.photos/400/300?random=2" alt="Placeholder 2">
+                        </div>
+                        <div class="gallery-item" data-caption="Form di esempio">
+                            <img src="https://picsum.photos/400/300?random=3" alt="Placeholder 3">
+                        </div>
+                        <div class="gallery-item" data-caption="Palette di colori UI">
+                            <img src="https://picsum.photos/400/300?random=4" alt="Placeholder 4">
+                        </div>
+                        <div class="gallery-item" data-caption="Dashboard con grafici">
+                            <img src="https://picsum.photos/400/300?random=5" alt="Placeholder 5">
+                        </div>
+                        <div class="gallery-item" data-caption="Esempio di hero section">
+                            <img src="https://picsum.photos/400/300?random=6" alt="Placeholder 6">
+                        </div>
+                    </div>
+                </article>
+            </section>
+        </main>
+    </div>
+
+    <!-- LIGHTBOX (fuori dal layout per posizionamento full-screen) -->
+    <div class="lightbox-backdrop" id="lightboxBackdrop" aria-hidden="true">
+        <div class="lightbox-content">
+            <img src="" alt="Immagine ingrandita" id="lightboxImage">
+            <div class="lightbox-caption" id="lightboxCaption"></div>
+        </div>
+    </div>
+
+    <script>
+        // Usiamo DOMContentLoaded per assicurarci che gli elementi HTML esistano
+        document.addEventListener("DOMContentLoaded", function () {
+            /* ----------------- SIDEBAR COLLASSABILE + LOCALSTORAGE ----------------- */
+            const layoutRoot = document.getElementById("layoutRoot");
+            const sidebarToggle = document.getElementById("sidebarToggle");
+
+            // Leggiamo lo stato salvato in precedenza (se esiste)
+            const savedSidebarState = localStorage.getItem("sidebarCollapsed");
+            if (savedSidebarState === "true") {
+                layoutRoot.classList.add("sidebar-collapsed");
+            }
+
+            sidebarToggle.addEventListener("click", function () {
+                layoutRoot.classList.toggle("sidebar-collapsed");
+
+                // Salviamo lo stato (true/false) in localStorage
+                const isCollapsed = layoutRoot.classList.contains("sidebar-collapsed");
+                localStorage.setItem("sidebarCollapsed", isCollapsed.toString());
+            });
+
+            /* ----------------- RICERCA LIVE SU LISTA ----------------- */
+            const searchInput = document.getElementById("componentSearchInput");
+            const componentList = document.getElementById("componentList");
+            const searchEmptyMessage = document.getElementById("searchEmptyMessage");
+
+            searchInput.addEventListener("input", function () {
+                const term = this.value.toLowerCase().trim();
+                let visibleCount = 0;
+
+                componentList.querySelectorAll("li").forEach(function (li) {
+                    const name = li.getAttribute("data-name").toLowerCase();
+
+                    // Mostriamo / nascondiamo in base alla corrispondenza
+                    if (name.includes(term)) {
+                        li.style.display = "";
+                        visibleCount++;
+                    } else {
+                        li.style.display = "none";
+                    }
+                });
+
+                // Se nessun elemento è visibile, mostriamo un messaggio
+                if (visibleCount === 0 && term !== "") {
+                    searchEmptyMessage.style.display = "block";
+                } else {
+                    searchEmptyMessage.style.display = "none";
+                }
+            });
+
+            /* ----------------- TO-DO LIST DINAMICA ----------------- */
+            const todoInput = document.getElementById("todoInput");
+            const addTodoButton = document.getElementById("addTodoButton");
+            const todoList = document.getElementById("todoList");
+
+            function createTodoItem(text) {
+                // Creiamo l'elemento <li> e lo popoliamo
+                const li = document.createElement("li");
+                li.className = "todo-item";
+
+                const span = document.createElement("span");
+                span.className = "todo-text";
+                span.textContent = text;
+
+                const removeButton = document.createElement("button");
+                removeButton.className = "todo-remove";
+                removeButton.textContent = "✕";
+                removeButton.setAttribute("aria-label", "Rimuovi");
+
+                // Listener per rimuovere l'elemento
+                removeButton.addEventListener("click", function () {
+                    li.remove();
+                });
+
+                li.appendChild(span);
+                li.appendChild(removeButton);
+
+                return li;
+            }
+
+            addTodoButton.addEventListener("click", function () {
+                const value = todoInput.value.trim();
+                if (value !== "") {
+                    const newItem = createTodoItem(value);
+                    todoList.appendChild(newItem);
+                    todoInput.value = "";
+                    todoInput.focus();
+                }
+            });
+
+            // Permetti "Invio" per aggiungere la to-do
+            todoInput.addEventListener("keydown", function (event) {
+                if (event.key === "Enter") {
+                    addTodoButton.click();
+                }
+            });
+
+            // Attacca listener di rimozione anche ai li iniziali
+            todoList.querySelectorAll(".todo-remove").forEach(function (button) {
+                button.addEventListener("click", function () {
+                    button.closest(".todo-item").remove();
+                });
+            });
+
+            /* ----------------- CONTATORE + LOCALSTORAGE ----------------- */
+            const counterValueElement = document.getElementById("counterValue");
+            const counterButtons = document.querySelectorAll("[data-counter-action]");
+            const COUNTER_STORAGE_KEY = "demoCounterValue";
+
+            let counterValue = 0;
+
+            // Carica il valore salvato
+            const savedCounter = localStorage.getItem(COUNTER_STORAGE_KEY);
+            if (savedCounter !== null && !isNaN(parseInt(savedCounter, 10))) {
+                counterValue = parseInt(savedCounter, 10);
+            }
+
+            function renderCounter() {
+                counterValueElement.textContent = counterValue.toString();
+            }
+
+            // Render iniziale
+            renderCounter();
+
+            counterButtons.forEach(function (btn) {
+                btn.addEventListener("click", function () {
+                    const action = btn.getAttribute("data-counter-action");
+
+                    if (action === "increment") {
+                        counterValue++;
+                    } else if (action === "decrement") {
+                        counterValue--;
+                    } else if (action === "reset") {
+                        counterValue = 0;
+                    }
+
+                    // Aggiorniamo il DOM
+                    renderCounter();
+                    // Salviamo il valore
+                    localStorage.setItem(COUNTER_STORAGE_KEY, counterValue.toString());
+                });
+            });
+
+            /* ----------------- BARRA DI PROGRESSO ----------------- */
+            const progressFill = document.getElementById("progressFill");
+            const progressLabel = document.getElementById("progressLabel");
+            const progressResetButton = document.getElementById("progressResetButton");
+            const progressButtons = document.querySelectorAll("[data-progress-step]");
+
+            let progressValue = 0; // 0 - 100
+
+            function clampProgress(value) {
+                return Math.max(0, Math.min(100, value));
+            }
+
+            function renderProgress() {
+                progressFill.style.width = progressValue + "%";
+                progressLabel.textContent = progressValue + "%";
+            }
+
+            // stato iniziale
+            renderProgress();
+
+            progressButtons.forEach(function (btn) {
+                btn.addEventListener("click", function () {
+                    const step = parseInt(btn.getAttribute("data-progress-step"), 10) || 0;
+                    progressValue = clampProgress(progressValue + step);
+                    renderProgress();
+                });
+            });
+
+            progressResetButton.addEventListener("click", function () {
+                progressValue = 0;
+                renderProgress();
+            });
+
+            /* ----------------- GALLERIA + LIGHTBOX ----------------- */
+            const gallery = document.getElementById("gallery");
+            const lightboxBackdrop = document.getElementById("lightboxBackdrop");
+            const lightboxImage = document.getElementById("lightboxImage");
+            const lightboxCaption = document.getElementById("lightboxCaption");
+
+            function openLightbox(src, caption) {
+                lightboxImage.src = src;
+                lightboxCaption.textContent = caption || "";
+                lightboxBackdrop.classList.add("visible");
+                lightboxBackdrop.setAttribute("aria-hidden", "false");
+            }
+
+            function closeLightbox() {
+                lightboxBackdrop.classList.remove("visible");
+                lightboxBackdrop.setAttribute("aria-hidden", "true");
+                lightboxImage.src = "";
+            }
+
+            // Evento click sulle miniature (event delegation)
+            gallery.addEventListener("click", function (event) {
+                const item = event.target.closest(".gallery-item");
+                if (!item) return;
+
+                const img = item.querySelector("img");
+                const src = img.getAttribute("src");
+                const caption = item.getAttribute("data-caption");
+                openLightbox(src, caption);
+            });
+
+            // Chiudi cliccando fuori dall'immagine
+            lightboxBackdrop.addEventListener("click", function (event) {
+                if (event.target === lightboxBackdrop) {
+                    closeLightbox();
+                }
+            });
+
+            // Chiudi con ESC
+            document.addEventListener("keydown", function (event) {
+                if (event.key === "Escape") {
+                    closeLightbox();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
